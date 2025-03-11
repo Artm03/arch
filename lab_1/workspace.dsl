@@ -17,6 +17,10 @@ workspace {
             apiGateway = container "API Gateway" "Маршрутизирует запросы к микросервисам" "Nginx, Traefik" "API Gateway" {
                 httpProxy = component "HTTP Proxy" "Обрабатывает HTTP запросы" "Nginx/Traefik"
                 webSocketProxy = component "WebSocket Proxy" "Обрабатывает WebSocket соединения" "Nginx/Traefik"
+
+                userApiEndpoints = component "User API Endpoints" "1. POST /api/users - Создание нового пользователя\n2. GET /api/users?login={login} - Поиск пользователя по логину\n3. GET /api/users?name={name}&surname={surname} - Поиск пользователя по маске имя и фамилии" "API Endpoints"
+                productApiEndpoints = component "Product API Endpoints" "1. POST /api/products - Создание товара\n2. GET /api/products - Получение списка товаров" "API Endpoints"
+                cartApiEndpoints = component "Cart API Endpoints" "1. POST /api/cart/items - Добавление товара в корзину\n2. GET /api/users/{userId}/cart - Получение корзины для пользователя" "API Endpoints"
             }
 
             notificationService = container "Notification Service" "Отправляет уведомления в реальном времени" "Python, FastAPI" "Microservice" {
@@ -28,6 +32,10 @@ workspace {
             userService = container "User Service" "Управление пользователями" "Python, FastAPI" "Microservice" {
                 userAPI = component "User API" "API для управления пользователями" "FastAPI"
                 userPublisher = component "User Event Publisher" "Публикует события пользователей в Kafka" "Kafka Producer"
+    
+                createUserEndpoint = component "Create User" "POST /api/users - Создание нового пользователя" "FastAPI Endpoint"
+                findUserByLoginEndpoint = component "Find User by Login" "GET /api/users?login={login} - Поиск пользователя по логину" "FastAPI Endpoint"
+                findUserByNameEndpoint = component "Find User by Name" "GET /api/users?name={name}&surname={surname} - Поиск пользователя по маске имя и фамилии" "FastAPI Endpoint"
 
                 userPublisherGoals = component "User Event Publishing Goals" "Цели: 1) Уведомление других сервисов об изменениях в данных пользователей\n2) Обеспечение отслеживаемости действий пользователей\n3) Поддержание актуальных данных в других сервисах" "Documentation"
             }
@@ -36,6 +44,9 @@ workspace {
                 productAPI = component "Product API" "API для управления товарами" "FastAPI"
                 productPublisher = component "Product Event Publisher" "Публикует события товаров в Kafka" "Kafka Producer"
                 productConsumer = component "Product Event Consumer" "Обрабатывает связанные с товарами события" "Kafka Consumer"
+    
+                createProductEndpoint = component "Create Product" "POST /api/products - Создание товара" "FastAPI Endpoint"
+                getProductsEndpoint = component "Get Products" "GET /api/products - Получение списка товаров" "FastAPI Endpoint"
 
                 productKafkaGoals = component "Product Kafka Goals" "Цели: 1) Информирование о изменениях в каталоге\n2) Обеспечение актуальности цен и наличия товаров\n3) Синхронизация данных между сервисами\n4) Обновление статистики на основе заказов" "Documentation"
             }
@@ -44,6 +55,9 @@ workspace {
                 cartAPI = component "Cart API" "API для управления корзиной" "FastAPI"
                 cartPublisher = component "Cart Event Publisher" "Публикует события корзины в Kafka" "Kafka Producer"
                 cartConsumer = component "Cart Event Consumer" "Обрабатывает связанные с корзиной события" "Kafka Consumer"
+    
+                addToCartEndpoint = component "Add To Cart" "POST /api/cart/items - Добавление товара в корзину" "FastAPI Endpoint"
+                getUserCartEndpoint = component "Get User Cart" "GET /api/users/{userId}/cart - Получение корзины для пользователя" "FastAPI Endpoint"
 
                 cartKafkaGoals = component "Cart Kafka Goals" "Цели: 1) Уведомление Order Service о начале оформления заказа\n2) Синхронизация с актуальными данными о товарах\n3) Согласованность данных между корзиной и профилем пользователя\n4) Реагирование на изменения товаров и пользователей" "Documentation"
             }
@@ -80,6 +94,16 @@ workspace {
 
                 kafkaGoals = component "Kafka Benefits" "Преимущества: 1) Отделение производителей от потребителей\n2) Масштабируемость\n3) Надежность и гарантия доставки\n4) Сохранение порядка сообщений\n5) Возможность повторной обработки\n6) Снижение связанности" "Documentation"
             }
+
+            userApiEndpoints -> createUserEndpoint "Создание пользователя" "JSON/HTTPS"
+            userApiEndpoints -> findUserByLoginEndpoint "Поиск по логину" "JSON/HTTPS"
+            userApiEndpoints -> findUserByNameEndpoint "Поиск по имени/фамилии" "JSON/HTTPS"
+
+            productApiEndpoints -> createProductEndpoint "Создание товара" "JSON/HTTPS"
+            productApiEndpoints -> getProductsEndpoint "Получение товаров" "JSON/HTTPS"
+
+            cartApiEndpoints -> addToCartEndpoint "Добавление в корзину" "JSON/HTTPS"
+            cartApiEndpoints -> getUserCartEndpoint "Получение корзины" "JSON/HTTPS"
 
             webApplication -> apiGateway "Отправляет запросы" "JSON/HTTPS"
             webSocketClient -> webSocketProxy "Подключается для получения уведомлений" "WebSocket"
@@ -166,6 +190,11 @@ workspace {
             autoLayout
         }
 
+        component apiGateway "APIEndpoints" {
+            include *
+            autoLayout
+        }
+
         component userService "UserServiceComponents" {
             include *
             autoLayout
@@ -201,38 +230,35 @@ workspace {
             autoLayout
         }
 
-        dynamic shopSystem "AddToCart" "Добавление товара в корзину" {
-            customer -> webApplication " Выбирает товар"
-            webApplication -> apiGateway " POST /api/cart/items"
-            apiGateway -> cartService " Перенаправляет запрос"
-            cartService -> userService " Проверяет пользователя"
-            userService -> cartService " Возвращает данные"
-            cartService -> productService "6. Проверяет товар"
-            productService -> cartService "7. Возвращает данные"
-            cartService -> cartDb "8. Сохраняет в корзине"
-            cartDb -> cartService "9. Подтверждает"
-            cartService -> messageBus "10. Публикует событие cart.item_added"
-            cartService -> apiGateway "11. Возвращает корзину"
-            apiGateway -> webApplication "12. Успешный ответ"
-            webApplication -> customer "13. Обновляет UI"
+        dynamic shopSystem "GetUserCart" "Получение корзины для пользователя" {
+            customer -> webApplication "Открывает корзину"
+            webApplication -> apiGateway "GET /api/users/cart"
+            apiGateway -> cartService "Перенаправляет запрос"
+            cartService -> cartDb "Получает данные корзины"
+            cartDb -> cartService "Возвращает данные"
+            cartService -> productService "Получает актуальные данные о товарах"
+            productService -> cartService "Возвращает данные товаров"
+            cartService -> apiGateway "Возвращает корзину с товарами"
+            apiGateway -> webApplication "Передает данные корзины"
+            webApplication -> customer "Отображает корзину с товарами"
             autoLayout
         }
 
         dynamic shopSystem "OrderStatusChange" "Изменение статуса заказа и логирование истории" {
-            admin -> webApplication " аИзменяет статус"
-            webApplication -> apiGateway " PUT /api/orders/{id}/status"
-            apiGateway -> orderService " Перенаправляет запрос"
-            orderService -> orderDb " Обновляет статус"
-            orderDb -> orderService " Подтверждает"
-            orderService -> messageBus "6. Публикует событие order.status_changed"
-            messageBus -> orderHistoryService "7. Передает событие"
-            orderHistoryService -> orderService "8. Запрашивает детали"
-            orderService -> orderHistoryService "9. Возвращает детали"
-            orderHistoryService -> orderHistoryDb "10. Сохраняет в историю"
-            orderHistoryService -> messageBus "11. Публикует order_history.recorded"
-            orderService -> apiGateway "12. Возвращает заказ"
-            apiGateway -> webApplication "13. Успешный ответ"
-            webApplication -> admin "14. Обновляет UI"
+            admin -> webApplication "Изменяет статус"
+            webApplication -> apiGateway "PUT /api/orders/status"
+            apiGateway -> orderService "Перенаправляет запрос"
+            orderService -> orderDb "Обновляет статус"
+            orderDb -> orderService "Подтверждает"
+            orderService -> messageBus "Публикует событие order.status_changed"
+            messageBus -> orderHistoryService "Передает событие"
+            orderHistoryService -> orderService "Запрашивает детали"
+            orderService -> orderHistoryService "Возвращает детали"
+            orderHistoryService -> orderHistoryDb "Сохраняет в историю"
+            orderHistoryService -> messageBus "Публикует order_history.recorded"
+            orderService -> apiGateway "Возвращает заказ"
+            apiGateway -> webApplication "Возвращает успешный ответ"
+            webApplication -> admin "Обновляет UI"
             autoLayout
         }
 
