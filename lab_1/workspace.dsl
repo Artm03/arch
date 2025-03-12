@@ -57,7 +57,7 @@ workspace {
                 cartConsumer = component "Cart Event Consumer" "Обрабатывает связанные с корзиной события" "Kafka Consumer"
     
                 addToCartEndpoint = component "Add To Cart" "POST /api/cart/items - Добавление товара в корзину" "FastAPI Endpoint"
-                getUserCartEndpoint = component "Get User Cart" "GET /api/users/{userId}/cart - Получение корзины для пользователя" "FastAPI Endpoint"
+                getUserCartEndpoint = component "Get User Cart" "GET /api/users/cart - Получение корзины для пользователя" "FastAPI Endpoint"
 
                 cartKafkaGoals = component "Cart Kafka Goals" "Цели: 1) Уведомление Order Service о начале оформления заказа\n2) Синхронизация с актуальными данными о товарах\n3) Согласованность данных между корзиной и профилем пользователя\n4) Реагирование на изменения товаров и пользователей" "Documentation"
             }
