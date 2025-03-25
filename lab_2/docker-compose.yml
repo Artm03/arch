@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8000:90"
+    depends_on:
+      - user-service
+      - product-service
+    networks:
+      - api-network
+
+  user-service:
+    build:
+      context: ./users
+      dockerfile: Dockerfile
+    expose:
+      - "8000"
+    volumes:
+      - ./users:/app
+    restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - api-network
+
+  product-service:
+    build:
+      context: ./products
+      dockerfile: Dockerfile
+    expose:
+      - "8001"
+    volumes:
+      - ./products:/app
+    restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - api-network
+
+networks:
+  api-network:
+    driver: bridge

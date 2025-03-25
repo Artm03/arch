@@ -18,8 +18,8 @@ workspace {
                 httpProxy = component "HTTP Proxy" "Обрабатывает HTTP запросы" "Nginx/Traefik"
                 webSocketProxy = component "WebSocket Proxy" "Обрабатывает WebSocket соединения" "Nginx/Traefik"
 
-                userApiEndpoints = component "User API Endpoints" "1. POST /api/users - Создание нового пользователя\n2. GET /api/users?login={login} - Поиск пользователя по логину\n3. GET /api/users?name={name}&surname={surname} - Поиск пользователя по маске имя и фамилии" "API Endpoints"
-                productApiEndpoints = component "Product API Endpoints" "1. POST /api/products - Создание товара\n2. GET /api/products - Получение списка товаров" "API Endpoints"
+                userApiEndpoints = component "User API Endpoints" "1. POST /api/users/create - Создание нового пользователя\n2. GET /api/users/details?login={login} - Поиск пользователя по логину\n3. GET /api/users/details?name={name}&surname={surname} - Поиск пользователя по маске имя и фамилии\n4. POST /api/token - Получение JWT-токена" "API Endpoints"
+                productApiEndpoints = component "Product API Endpoints" "1. POST /api/products/create - Создание товара\n2. GET /api/products - Получение списка товаров" "API Endpoints"
                 cartApiEndpoints = component "Cart API Endpoints" "1. POST /api/cart/items - Добавление товара в корзину\n2. GET /api/users/{userId}/cart - Получение корзины для пользователя" "API Endpoints"
             }
 
@@ -29,13 +29,20 @@ workspace {
                 notificationConsumer = component "Notification Consumer" "Получает события из Kafka для отправки уведомлений" "Kafka Consumer"
             }
 
-            userService = container "User Service" "Управление пользователями" "Python, FastAPI" "Microservice" {
+            userService = container "User Service" "Управление пользователями и аутентификацией" "Python, FastAPI" "Microservice" {
                 userAPI = component "User API" "API для управления пользователями" "FastAPI"
                 userPublisher = component "User Event Publisher" "Публикует события пользователей в Kafka" "Kafka Producer"
     
-                createUserEndpoint = component "Create User" "POST /api/users - Создание нового пользователя" "FastAPI Endpoint"
+                createUserEndpoint = component "Create User" "POST /api/users/list - Создание нового пользователя" "FastAPI Endpoint"
                 findUserByLoginEndpoint = component "Find User by Login" "GET /api/users?login={login} - Поиск пользователя по логину" "FastAPI Endpoint"
                 findUserByNameEndpoint = component "Find User by Name" "GET /api/users?name={name}&surname={surname} - Поиск пользователя по маске имя и фамилии" "FastAPI Endpoint"
+
+                authEndpoint = component "Authentication" "POST /api/token - Получение JWT-токена по логину/паролю" "FastAPI Endpoint"
+                jwtHandler = component "JWT Handler" "Создание и валидация JWT-токенов" "Python-jose, FastAPI Dependencies"
+                passwordHandler = component "Password Handler" "Хеширование и проверка паролей" "Passlib/Bcrypt"
+
+                userDependencies = component "Security Dependencies" "Middleware для проверки аутентификации и авторизации" "FastAPI Dependency Injection"
+                inMemoryUserStore = component "In-Memory User Store" "Временное хранение данных о пользователях" "Python Dict"
 
                 userPublisherGoals = component "User Event Publishing Goals" "Цели: 1) Уведомление других сервисов об изменениях в данных пользователей\n2) Обеспечение отслеживаемости действий пользователей\n3) Поддержание актуальных данных в других сервисах" "Documentation"
             }
@@ -44,9 +51,13 @@ workspace {
                 productAPI = component "Product API" "API для управления товарами" "FastAPI"
                 productPublisher = component "Product Event Publisher" "Публикует события товаров в Kafka" "Kafka Producer"
                 productConsumer = component "Product Event Consumer" "Обрабатывает связанные с товарами события" "Kafka Consumer"
-    
-                createProductEndpoint = component "Create Product" "POST /api/products - Создание товара" "FastAPI Endpoint"
-                getProductsEndpoint = component "Get Products" "GET /api/products - Получение списка товаров" "FastAPI Endpoint"
+
+                createProductEndpoint = component "Create Product" "POST /products/create - Создание товара" "FastAPI Endpoint"
+                getProductsEndpoint = component "Get Products" "GET /products/list - Получение списка товаров" "FastAPI Endpoint"
+                getProductDetailsEndpoint = component "Get Product Details" "GET /products/details - Получение деталей товара по ID" "FastAPI Endpoint"
+                updateProductEndpoint = component "Update Product" "PUT /products/update - Обновление товара по ID" "FastAPI Endpoint"
+                deleteProductEndpoint = component "Delete Product" "DELETE /products/delete - Удаление товара по ID" "FastAPI Endpoint"
+                createBulkProductsEndpoint = component "Create Bulk Products" "POST /products/create/bulk - Массовое создание товаров" "FastAPI Endpoint"
 
                 productKafkaGoals = component "Product Kafka Goals" "Цели: 1) Информирование о изменениях в каталоге\n2) Обеспечение актуальности цен и наличия товаров\n3) Синхронизация данных между сервисами\n4) Обновление статистики на основе заказов" "Documentation"
             }
@@ -98,6 +109,22 @@ workspace {
             userApiEndpoints -> createUserEndpoint "Создание пользователя" "JSON/HTTPS"
             userApiEndpoints -> findUserByLoginEndpoint "Поиск по логину" "JSON/HTTPS"
             userApiEndpoints -> findUserByNameEndpoint "Поиск по имени/фамилии" "JSON/HTTPS"
+            userApiEndpoints -> authEndpoint "Аутентификация" "JSON/HTTPS"
+
+            authEndpoint -> passwordHandler "Проверяет пароль" "Function Call"
+            authEndpoint -> jwtHandler "Создает JWT токен" "Function Call"
+            authEndpoint -> inMemoryUserStore "Проверяет учетные данные" "Function Call"
+            
+            userDependencies -> jwtHandler "Проверяет JWT токен" "Function Call"
+            createUserEndpoint -> passwordHandler "Хеширует пароль" "Function Call"
+            createUserEndpoint -> inMemoryUserStore "Сохраняет пользователя" "Function Call"
+            createUserEndpoint -> userDependencies "Проверяет аутентификацию" "Function Call"
+            
+            findUserByLoginEndpoint -> userDependencies "Проверяет аутентификацию" "Function Call"
+            findUserByLoginEndpoint -> inMemoryUserStore "Ищет пользователя" "Function Call"
+            
+            findUserByNameEndpoint -> userDependencies "Проверяет аутентификацию" "Function Call"
+            findUserByNameEndpoint -> inMemoryUserStore "Ищет пользователя" "Function Call"
 
             productApiEndpoints -> createProductEndpoint "Создание товара" "JSON/HTTPS"
             productApiEndpoints -> getProductsEndpoint "Получение товаров" "JSON/HTTPS"
@@ -229,6 +256,19 @@ workspace {
             include *
             autoLayout
         }
+
+        dynamic shopSystem "UserAuthentication" "Процесс аутентификации пользователя" {
+            customer -> webApplication "Вводит логин и пароль"
+            webApplication -> apiGateway "POST /api/token"
+            apiGateway -> userService "Отправляет запрос аутентификации"
+            userService -> userDb "Проверяет учетные данные"
+            userDb -> userService "Возвращает данные пользователя"
+            userService -> apiGateway "Возвращает JWT-токен"
+            apiGateway -> webApplication "Передает токен клиенту"
+            webApplication -> customer "Подтверждает успешный вход"
+            autoLayout
+        }
+
 
         dynamic shopSystem "GetUserCart" "Получение корзины для пользователя" {
             customer -> webApplication "Открывает корзину"
