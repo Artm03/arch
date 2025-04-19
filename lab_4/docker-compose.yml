@@ -1,0 +1,103 @@
+version: "3.8"
+
+services:
+  api-gateway:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8000:90"
+    depends_on:
+      - user-service
+      - product-service
+    networks:
+      - api-network
+
+  user-service:
+    build:
+      context: ./users
+      dockerfile: Dockerfile
+    expose:
+      - "8000"
+    volumes:
+      - ./users:/app
+    restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+asyncpg://stud:stud@db-users:5432/users_db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - db-users
+    networks:
+      - api-network
+
+  product-service:
+    build:
+      context: ./products
+      dockerfile: Dockerfile
+    expose:
+      - "8001"
+    volumes:
+      - ./products:/app
+    restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MONGO_URI=mongodb://mongo-db:27017/products_db
+      - MONGO_DB_NAME=products_db
+      - MONGO_COLLECTION=products
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - mongo-db
+    networks:
+      - api-network
+
+  db-users:
+    container_name: db-users
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=stud
+      - POSTGRES_PASSWORD=stud
+      - PGDATA=/data/postgres
+      - POSTGRES_DB=users_db
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d users_db -U stud"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - api-network
+
+  mongo-db:
+    container_name: mongo-db
+    image: mongo:5
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - api-network
+
+networks:
+  api-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
