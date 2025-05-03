@@ -1,0 +1,216 @@
+Testing Users List without cache (threads: 1) with 1 threads
+========================================
+Running 10s test @ http://localhost:8000/users/list
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.03ms   77.55us   2.81ms   77.67%
+    Req/Sec     0.98k    27.94     1.01k    89.00%
+  Latency Distribution
+     50%    1.01ms
+     75%    1.06ms
+     90%    1.12ms
+     99%    1.29ms
+  9704 requests in 10.00s, 2.04MB read
+  Non-2xx or 3xx responses: 9704
+Requests/sec:    970.24
+Transfer/sec:    208.44KB
+========================================
+
+Testing Users List without cache (threads: 5) with 5 threads
+========================================
+Running 10s test @ http://localhost:8000/users/list
+  5 threads and 5 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     4.37ms  629.14us   9.89ms   86.61%
+    Req/Sec   229.55     24.68   340.00     82.00%
+  Latency Distribution
+     50%    4.23ms
+     75%    4.62ms
+     90%    5.02ms
+     99%    6.86ms
+  11439 requests in 10.01s, 2.40MB read
+  Non-2xx or 3xx responses: 11439
+Requests/sec:   1142.58
+Transfer/sec:    245.47KB
+========================================
+
+Testing Users List without cache (threads: 10) with 10 threads
+========================================
+Running 10s test @ http://localhost:8000/users/list
+  10 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     8.19ms    1.69ms  19.11ms   74.64%
+    Req/Sec   122.60     25.46   210.00     81.70%
+  Latency Distribution
+     50%    8.62ms
+     75%    9.06ms
+     90%    9.56ms
+     99%   12.62ms
+  12220 requests in 10.02s, 2.93MB read
+  Non-2xx or 3xx responses: 12220
+Requests/sec:   1219.79
+Transfer/sec:    299.44KB
+========================================
+
+Testing Users List with cache (threads: 1) with 1 threads
+========================================
+Running 10s test @ http://localhost:8000/users/cached/list
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     2.35ms  197.46us   6.74ms   84.99%
+    Req/Sec   427.10     17.21   464.00     84.00%
+  Latency Distribution
+     50%    2.32ms
+     75%    2.42ms
+     90%    2.53ms
+     99%    3.13ms
+  4255 requests in 10.01s, 1.27MB read
+  Non-2xx or 3xx responses: 4255
+Requests/sec:    425.20
+Transfer/sec:    130.38KB
+========================================
+
+Testing Users List with cache (threads: 5) with 5 threads
+========================================
+Running 10s test @ http://localhost:8000/users/cached/list
+  5 threads and 5 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     4.32ms    1.30ms  11.22ms   83.07%
+    Req/Sec   232.33     54.66   303.00     68.00%
+  Latency Distribution
+     50%    4.06ms
+     75%    4.34ms
+     90%    6.56ms
+     99%    8.32ms
+  11582 requests in 10.01s, 3.47MB read
+  Non-2xx or 3xx responses: 11582
+Requests/sec:   1156.98
+Transfer/sec:    354.77KB
+========================================
+
+Testing Users List with cache (threads: 10) with 10 threads
+========================================
+Running 10s test @ http://localhost:8000/users/cached/list
+  10 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     6.63ms    2.37ms  31.10ms   77.78%
+    Req/Sec   151.69     44.01   212.00     54.90%
+  Latency Distribution
+     50%    5.57ms
+     75%    8.50ms
+     90%   10.27ms
+     99%   12.99ms
+  15138 requests in 10.02s, 4.53MB read
+  Non-2xx or 3xx responses: 15138
+Requests/sec:   1510.62
+Transfer/sec:    463.21KB
+========================================
+
+Testing User Details without cache (threads: 1) with 1 threads
+========================================
+Running 10s test @ http://localhost:8000/users/details?user_id=1
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.35ms  557.33us   5.64ms   77.53%
+    Req/Sec   742.86    254.69     1.00k    62.00%
+  Latency Distribution
+     50%    1.07ms
+     75%    1.33ms
+     90%    2.34ms
+     99%    2.71ms
+  7399 requests in 10.00s, 1.70MB read
+  Non-2xx or 3xx responses: 7399
+Requests/sec:    739.55
+Transfer/sec:    174.14KB
+========================================
+
+Testing User Details without cache (threads: 5) with 5 threads
+========================================
+Running 10s test @ http://localhost:8000/users/details?user_id=1
+  5 threads and 5 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     4.43ms    1.23ms  21.72ms   89.61%
+    Req/Sec   228.55     40.10   330.00     81.00%
+  Latency Distribution
+     50%    4.08ms
+     75%    4.35ms
+     90%    5.44ms
+     99%   10.06ms
+  11384 requests in 10.01s, 2.42MB read
+  Non-2xx or 3xx responses: 11384
+Requests/sec:   1137.37
+Transfer/sec:    247.91KB
+========================================
+
+Testing User Details without cache (threads: 10) with 10 threads
+========================================
+Running 10s test @ http://localhost:8000/users/details?user_id=1
+  10 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     8.81ms    1.14ms  36.51ms   94.61%
+    Req/Sec   114.27      6.50   131.00     77.00%
+  Latency Distribution
+     50%    8.71ms
+     75%    9.06ms
+     90%    9.45ms
+     99%   10.79ms
+  11385 requests in 10.01s, 2.39MB read
+  Non-2xx or 3xx responses: 11385
+Requests/sec:   1137.31
+Transfer/sec:    244.34KB
+========================================
+
+Testing User Details with cache (threads: 1) with 1 threads
+========================================
+Running 10s test @ http://localhost:8000/users/cached/details?user_id=1
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     2.38ms  267.24us   6.10ms   86.46%
+    Req/Sec   421.95     29.48   470.00     74.00%
+  Latency Distribution
+     50%    2.34ms
+     75%    2.46ms
+     90%    2.61ms
+     99%    3.35ms
+  4204 requests in 10.00s, 1.14MB read
+  Non-2xx or 3xx responses: 4204
+Requests/sec:    420.20
+Transfer/sec:    116.75KB
+========================================
+
+Testing User Details with cache (threads: 5) with 5 threads
+========================================
+Running 10s test @ http://localhost:8000/users/cached/details?user_id=1
+  5 threads and 5 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     4.16ms  838.74us  11.33ms   85.02%
+    Req/Sec   241.36     32.90   303.00     87.00%
+  Latency Distribution
+     50%    4.15ms
+     75%    4.38ms
+     90%    4.67ms
+     99%    8.05ms
+  12030 requests in 10.01s, 3.60MB read
+  Non-2xx or 3xx responses: 12030
+Requests/sec:   1201.75
+Transfer/sec:    368.50KB
+========================================
+
+Testing User Details with cache (threads: 10) with 10 threads
+========================================
+Running 10s test @ http://localhost:8000/users/cached/details?user_id=1
+  10 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     6.79ms    2.33ms  21.69ms   71.31%
+    Req/Sec   148.02     44.86   240.00     53.80%
+  Latency Distribution
+     50%    5.71ms
+     75%    8.93ms
+     90%   10.10ms
+     99%   12.56ms
+  14763 requests in 10.02s, 4.42MB read
+  Non-2xx or 3xx responses: 14763
+Requests/sec:   1472.93
+Transfer/sec:    451.66KB
+========================================
+
