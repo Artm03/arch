@@ -200,6 +200,8 @@ async def delete_user(
     await conn.commit()
 
     await redis_cache.invalidate_user_cache(user_id, redis)
+    await redis_cache.invalidate_users_list_cache(redis)
+
     return {'message': 'ok'}
 
 
